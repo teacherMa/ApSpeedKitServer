@@ -1,5 +1,4 @@
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.Socket;
 
 /**
@@ -8,32 +7,61 @@ import java.net.Socket;
  */
 public class TestSpeedRunnable implements Runnable {
     private Socket mClientSocket;
-    private static final int PACKAGE_SIZE = 1024;
-    private static final int DOWN_TIME = 1000;
+    private Socket mInfoSocket;
 
-    TestSpeedRunnable(Socket clientSocket) {
+    public TestSpeedRunnable(Socket clientSocket, Socket infoSocket) {
         mClientSocket = clientSocket;
+        mInfoSocket = infoSocket;
     }
 
     @Override
     public void run() {
-        byte[] buffer = new byte[PACKAGE_SIZE];
+        int testTime;
+        int bufferSize;
         try {
+            System.out.println("tcp test start");
+            //Stream used to test speed between client and server
             InputStream inputStream = mClientSocket.getInputStream();
-            int recBufferSize;
-            int totalRecSize = 0;
-            while ((recBufferSize = inputStream.read(buffer)) != -1) {
-                totalRecSize += recBufferSize;
-            }
-            System.out.println("Rec finished: "+totalRecSize);
             OutputStream outputStream = mClientSocket.getOutputStream();
-            outputStream.write(Kit.intToByteArray(totalRecSize));
+
+            //Stream used to transport information between client and server
+            InputStream infoInputStream = mInfoSocket.getInputStream();
+            OutputStream infoOutputStream = mInfoSocket.getOutputStream();
+
+            PrintStream infoPrinter = new PrintStream(infoOutputStream);
+
+            BufferedReader infoReader = new BufferedReader(new InputStreamReader(infoInputStream));
+            testTime = Integer.parseInt(infoReader.readLine());
+            bufferSize = Integer.parseInt(infoReader.readLine());
+
+            int onceRecSize;
+            int serverTcpTotalRecSize = 0;
+            byte[] buffer = new byte[bufferSize];
             long startTime = System.currentTimeMillis();
-            while (DOWN_TIME > (System.currentTimeMillis() - startTime)) {
+            while (System.currentTimeMillis() - startTime <= testTime
+                    && (onceRecSize = inputStream.read(buffer)) != -1) {
+                serverTcpTotalRecSize += onceRecSize;
+            }
+
+            infoPrinter.println(serverTcpTotalRecSize);
+
+            System.out.println("tcp rec " + serverTcpTotalRecSize);
+
+            startTime = System.currentTimeMillis();
+            while (testTime > (System.currentTimeMillis() - startTime)) {
                 outputStream.write(buffer);
             }
             mClientSocket.shutdownOutput();
-            System.out.println("Send finished");
+
+            System.out.println("tcp send finished");
+
+            int clientTotalRecSize = Integer.parseInt(infoReader.readLine());
+            System.out.println("tcp client rec " + clientTotalRecSize);
+
+            System.out.println("tcp test finished");
+
+            System.out.println("udp test start");
+
             mClientSocket.close();
         } catch (Exception e) {
             e.printStackTrace();

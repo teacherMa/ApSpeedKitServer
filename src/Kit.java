@@ -3,10 +3,10 @@
  * Created on 2017/11/6.
  */
 public class Kit {
-    public static byte[] intToByteArray(int inputIntergerValue) throws Exception {
+    public static byte[] intToByteArray(int inputIntegerValue) throws Exception {
         byte[] convertedByteArr = new byte[4];
         for (int i = 0; i < convertedByteArr.length; i++) {
-            convertedByteArr[i] = (byte) ((inputIntergerValue >> (8 * i)) & 0xFF);
+            convertedByteArr[i] = (byte) ((inputIntegerValue >> (8 * i)) & 0xFF);
         }
 
         return convertedByteArr;
