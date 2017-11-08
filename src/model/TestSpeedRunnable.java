@@ -1,5 +1,10 @@
+package model;
+
+import model.bean.Connection;
+
 import java.io.*;
 import java.net.*;
+import java.text.DecimalFormat;
 
 /**
  * @author teacherMa
@@ -11,9 +16,15 @@ public class TestSpeedRunnable implements Runnable {
     private Socket mClientSocket;
     private Socket mInfoSocket;
 
+    private OnNewTestComplete mTestComplete;
+
     public TestSpeedRunnable(Socket clientSocket, Socket infoSocket) {
         mClientSocket = clientSocket;
         mInfoSocket = infoSocket;
+    }
+
+    public void setTestComplete(OnNewTestComplete testComplete) {
+        mTestComplete = testComplete;
     }
 
     @Override
@@ -73,6 +84,15 @@ public class TestSpeedRunnable implements Runnable {
 
             clientTotalRecSize = Integer.parseInt(infoReader.readLine());
             System.out.println("tcp client rec " + clientTotalRecSize);
+
+            Connection curConnection = new Connection(mClientSocket.getInetAddress().toString(),
+                    Integer.toString(mClientSocket.getPort()),
+                    new DecimalFormat("###.##").format(serverTcpTotalRecSize/1024.0f/1024/testTime*1000)+"MB/s",
+                    new DecimalFormat("###.##").format(clientTotalRecSize/1024.0f/1024/testTime*1000)+"MB/s");
+
+            if (null != mTestComplete) {
+                mTestComplete.onNewTestComplete(curConnection);
+            }
 
             mClientSocket.close();
 //            System.out.println("tcp test finished");

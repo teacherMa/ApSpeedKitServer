@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="ApSpeedServer:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/ApSpeedServer_jar</output-path>
+    <root id="archive" name="ApSpeedServer.jar">
+      <element id="module-output" name="ApSpeedServer" />
+    </root>
+  </artifact>
+</component>
